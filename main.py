@@ -4,26 +4,16 @@ from microdot import Microdot
 from microdot import send_file
 
 import network
-import socket
 import time
 
-import request_handler as rh
-import http_req_parser as rp
 from lights import PwmLight
 from settings import Settings
 
-
 from machine import Pin
-import uasyncio as asyncio
-
-debug = True
 
 onboard_led = Pin('LED', Pin.OUT)
 light = PwmLight(4)
 settings = Settings('wifi.dat').get_settings()
-
-state = 'off'
-brightness = 100
 
 def connect_to_network(ssid, password):
     wlan = network.WLAN(network.STA_IF)
@@ -48,51 +38,40 @@ def connect_to_network(ssid, password):
         print('connected, ip = ' + status[0])
         onboard_led.value(0)
         
-        
-def turn_on():
-    global state
-    state = 'on'
-    onboard_led.value(1)
-
-
-def turn_off():
-    global state
-    state = 'off'
-    onboard_led.value(0)
-
-
 app = Microdot()
 
 
 
 @app.route('/')
 def hello(request):
-    #return htmldoc, 200, {'Content-Type': 'text/html'}
     return send_file('/html/index.html')
-
-
-@app.route('/shutdown')
-def shutdown(request):
-    request.app.shutdown()
-    return 'The server is shutting down...'
-
 
 @app.get('/on')
 def turn_on_handler(request):
-    turn_on()
+    light.turn_on()
     return 'Turning on', 200, {'Content-Type': 'text/html'}
 
 @app.get('/off')
 def turn_off_handler(request):
-    turn_off()
+    light.turn_off()
     return 'Turning off', 200, {'Content-Type': 'text/html'}
 
 @app.get('/status')
 def get_status(req):
-    return {
-        "state":state,
-        "brightness": brightness
-        }
+    return str(1 if light.is_on else 0)
+
+@app.get('/brightness_value')
+def get_brightness(req):
+    return str(light.brightness)
+
+"""
+"brightness_url": "http://192.168.1.206/light/brightness?value=2"
+"""
+@app.get('/brightness')
+def set_brightness(req):
+    brightness = int(req.args.get('value'))
+    light.set_brightness(brightness)
+    
 
 print("Connecting to network")
 connect_to_network(settings['ssid'], settings['pass'])
