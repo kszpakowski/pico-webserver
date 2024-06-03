@@ -32,6 +32,6 @@ class PwmLight:
         
     def get_state(self):
         print(f"Returning current state. Is on: {self.is_on}, Brightness: {self.brightness}")
-        return (self.is_on, self.brightness)
+        return { "on": self.is_on, "brightness": self.brightness }
         
         

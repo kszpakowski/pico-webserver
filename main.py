@@ -1,10 +1,9 @@
-# https://microdot.readthedocs.io/en/latest/index.html
-
-from microdot import Microdot
-from microdot import send_file
-
+import asyncio
 import network
 import time
+
+# https://microdot.readthedocs.io/en/latest/index.html
+from microdot import Microdot, Response
 
 from lights import PwmLight
 from settings import Settings
@@ -40,40 +39,28 @@ def connect_to_network(ssid, password):
         
 app = Microdot()
 
+@app.get('/')
+async def state_handler(request):
+    state = light.get_state()
+    return Response(body=state)
 
-
-@app.route('/')
-def hello(request):
-    return send_file('/html/index.html')
-
-@app.get('/on')
-def turn_on_handler(request):
-    light.turn_on()
-    return 'Turning on', 200, {'Content-Type': 'text/html'}
-
-@app.get('/off')
-def turn_off_handler(request):
-    light.turn_off()
-    return 'Turning off', 200, {'Content-Type': 'text/html'}
-
-@app.get('/status')
-def get_status(req):
-    return str(1 if light.is_on else 0)
-
-@app.get('/brightness_value')
-def get_brightness(req):
-    return str(light.brightness)
-
-"""
-"brightness_url": "http://192.168.1.206/light/brightness?value=2"
-"""
-@app.get('/brightness')
-def set_brightness(req):
-    brightness = int(req.args.get('value'))
-    light.set_brightness(brightness)
-    
+@app.put('/')
+async def update_handler(request):
+    data = request.json
+    if 'on' in data:
+        if data['on']:
+            light.turn_on()
+        else:
+            light.turn_off()
+    if 'brightness' in data:
+        light.set_brightness(data['brightness'])
+            
 
 print("Connecting to network")
 connect_to_network(settings['ssid'], settings['pass'])
 
-app.run(debug=True)
+
+async def main():
+    await app.start_server(port=80, debug=True)
+
+asyncio.run(main())
