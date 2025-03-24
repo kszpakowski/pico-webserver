@@ -24,9 +24,14 @@ class PwmLight:
         self.is_on = False
         self._update()
 
+    def set_on(self, on):
+        self.is_on = on
+        self._update()
+
     def set_brightness(self, value):
         self.brightness = max(min(value, 100), 0)
         self._update()
 
     def get_state(self):
         return {"on": self.is_on, "brightness": self.brightness}
+

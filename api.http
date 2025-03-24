@@ -1,0 +1,27 @@
+### Get light status
+GET http://192.168.1.153
+
+
+### Turn the light on
+PUT http://192.168.1.153
+Content-Type: application/json
+
+{
+    "on": true
+}
+
+### Turn the light off
+PUT http://192.168.1.153
+Content-Type: application/json
+
+{
+    "on": false
+}
+
+### Turn light brightness
+PUT http://192.168.1.153
+Content-Type: application/json
+
+{
+    "brightness": 75
+}
